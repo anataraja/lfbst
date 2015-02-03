@@ -8,7 +8,7 @@ seekRecord_t * insseek(thread_data_t * data, long key, int op){
 	node_t * leafchild;
 	
 	
-	AO_t parentPointerWord = NULL; // contents in gpar
+	AO_t parentPointerWord = 0; // contents in gpar
 	AO_t leafPointerWord = par->child.AO_val1; // contents in par. Tree has two imaginary keys \inf_{1} and \inf_{2} which are larger than all other keys. 
 	AO_t leafchildPointerWord; // contents in leaf
 	
@@ -33,9 +33,6 @@ seekRecord_t * insseek(thread_data_t * data, long key, int op){
 	
 	
 	while(leafchild != NULL){
-		
-		
-		
 		if(!is_marked(leafPointerWord)){
 			gpar = par;
 			parentPointerWord = leafPointerWord;
@@ -62,10 +59,10 @@ seekRecord_t * insseek(thread_data_t * data, long key, int op){
 		
 	}
 	
-		if(key == leaf->key){
-			// key matches that being inserted	
-			return NULL;
-		}
+	if(key == leaf->key){
+    // key matches that being inserted	
+	  return NULL;
+	}
 	
 	seekRecord_t * R = data->sr;
 	
@@ -81,24 +78,18 @@ seekRecord_t * insseek(thread_data_t * data, long key, int op){
 	R->lum = gpar;
 	R->lumC = parentPointerWord;	
 	R->isLeftUM = isparLC;
-	
-	
-	
 	return R;
 }
 
 
 seekRecord_t * delseek(thread_data_t * data, long key, int op){
-	
-	
-	
 	node_t * gpar = NULL; // last node (ancestor of parent on access path) whose child pointer field is unmarked
 	node_t * par = data->rootOfTree;
 	node_t * leaf;
 	node_t * leafchild;
 	
 	
-	AO_t parentPointerWord = NULL; // contents in gpar
+	AO_t parentPointerWord = 0; // contents in gpar
 	AO_t leafPointerWord = par->child.AO_val1; // contents in par. Tree has two imaginary keys \inf_{1} and \inf_{2} which are larger than all other keys. 
 	AO_t leafchildPointerWord; // contents in leaf
 	
@@ -123,9 +114,6 @@ seekRecord_t * delseek(thread_data_t * data, long key, int op){
 	
 	
 	while(leafchild != NULL){
-		
-		
-		
 		if(!is_marked(leafPointerWord)){
 			gpar = par;
 			parentPointerWord = leafPointerWord;
@@ -153,15 +141,11 @@ seekRecord_t * delseek(thread_data_t * data, long key, int op){
 	}
 		
 			// op = DEL
-			if(key != leaf->key){
-				// key is not found in the tree.
-				return NULL;
-			}
+	if(key != leaf->key){
+	  // key is not found in the tree.
+		return NULL;
+	}
 		
-	
-	
-	
-	
 	seekRecord_t * R = data->sr;
 	
 	R->leafKey = leaf->key;
@@ -176,24 +160,20 @@ seekRecord_t * delseek(thread_data_t * data, long key, int op){
 	R->lum = gpar;
 	R->lumC = parentPointerWord;	
 	R->isLeftUM = isparLC;
-	
-	
 
 	return R;
 }
+
+
 seekRecord_t * secondary_seek(thread_data_t * data, long key, seekRecord_t * sr){
 	
-	//std::cout << "sseek" << std::endl;
 	node_t * flaggedLeaf = (node_t *)get_addr(sr->pL);
-	
-	
 	node_t * gpar = NULL; // last node (ancestor of parent on access path) whose child pointer field is unmarked
 	node_t * par = data->rootOfTree;
 	node_t * leaf;
 	node_t * leafchild;
 	
-	
-	AO_t parentPointerWord = NULL; // contents in gpar
+	AO_t parentPointerWord = 0; // contents in gpar
 	AO_t leafPointerWord = par->child.AO_val1; // contents in par. Tree has two imaginary keys \inf_{1} and \inf_{2} which are larger than all other keys. 
 	AO_t leafchildPointerWord; // contents in leaf
 	
@@ -203,24 +183,18 @@ seekRecord_t * secondary_seek(thread_data_t * data, long key, seekRecord_t * sr)
 	
 	
 	leaf = (node_t *)get_addr(leafPointerWord);
-		if(key < leaf->key){
-			leafchildPointerWord = leaf->child.AO_val1;
-			isleafchildLC = true;
-			
-		}
-		else{
-			leafchildPointerWord = leaf->child.AO_val2;
-			isleafchildLC = false;
-		}
+	if(key < leaf->key){
+	  leafchildPointerWord = leaf->child.AO_val1;
+		isleafchildLC = true;
+	}
+	else{
+		leafchildPointerWord = leaf->child.AO_val2;
+		isleafchildLC = false;
+	}
 	
 	leafchild = (node_t *)get_addr(leafchildPointerWord);
 	
-	
-	
-	while(leafchild != NULL){
-		
-		
-		
+  while(leafchild != NULL){
 		if(!is_marked(leafPointerWord)){
 			gpar = par;
 			parentPointerWord = leafPointerWord;
@@ -232,7 +206,6 @@ seekRecord_t * secondary_seek(thread_data_t * data, long key, seekRecord_t * sr)
 		isleafLC = isleafchildLC;
 		
 		leaf = leafchild;
-		
 		
 		if(key < leaf->key){
 			leafchildPointerWord = leaf->child.AO_val1;
@@ -247,17 +220,10 @@ seekRecord_t * secondary_seek(thread_data_t * data, long key, seekRecord_t * sr)
 		
 	}
 			
-			
-			
 	if( !is_flagged(leafPointerWord) || (leaf != flaggedLeaf) ){
 		// operation has been completed by another process.
 		return NULL;		
 	 }
-			
-						
-			
-	
-	
 	
 	seekRecord_t * R = data->ssr;
 	
@@ -274,42 +240,20 @@ seekRecord_t * secondary_seek(thread_data_t * data, long key, seekRecord_t * sr)
 	R->lumC = parentPointerWord;	
 	R->isLeftUM = isparLC;
 	
-	
-	
-	return R;
+  return R;
 }
 
 bool search(thread_data_t * data, long key){
 	
-	
 	node_t * cur = (node_t *)get_addr(data->rootOfTree->child.AO_val1);
-	
 	long lastKey;	
-	
-	
-	
 	while(cur != NULL){
+	  lastKey = cur->key;
+		cur = (key < lastKey? (node_t *)get_addr(cur->child.AO_val1): (node_t *)get_addr(cur->child.AO_val2));
+	}
 	
-	
-
-			lastKey = cur->key;
-			
-			cur = (key < lastKey? (node_t *)get_addr(cur->child.AO_val1): (node_t *)get_addr(cur->child.AO_val2));
-			
-			
-			
-			
-			
-		}
-	
-	
-	return (key == lastKey);
-	
+  return (key == lastKey);
 }
-
-
-
-
 
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -319,9 +263,7 @@ int help_conflicting_operation (thread_data_t * data, seekRecord_t * R){
 
 	if(is_flagged(R->pL)){
 		// leaf node is flagged for deletion by another process.
-		
 		//1. mark sibling of leaf node for deletion and then read its contents.
-		
 		AO_t pS;
 		
 		if(R->isLeftL){
@@ -355,8 +297,6 @@ int help_conflicting_operation (thread_data_t * data, seekRecord_t * R){
 			 result = atomic_cas_full(&R->lum->child.AO_val2, R->lumC, newWord);
 		}
 		
-		
-		
 		return result; 
 		
 	}
@@ -365,10 +305,6 @@ int help_conflicting_operation (thread_data_t * data, seekRecord_t * R){
 		// Note that leaf is not flagged, as it will be taken care of in the above case.
 		
 		AO_t newWord;
-		
-		
-		
-		
 		
 		if(is_flagged(R->pL)){
 			newWord = create_child_word((node_t *)get_addr(R->pL), UNMARK, FLAG);
@@ -386,9 +322,7 @@ int help_conflicting_operation (thread_data_t * data, seekRecord_t * R){
 			result = atomic_cas_full(&R->lum->child.AO_val2, R->lumC, newWord);
 		}
 		
-		
-		
-		return result; 
+    return result; 
 	}	
 		
 }
@@ -398,7 +332,6 @@ int help_conflicting_operation (thread_data_t * data, seekRecord_t * R){
 
 
 int inject(thread_data_t * data, seekRecord_t * R, int op){
-	
 	
 		// pL is free
 		
@@ -417,30 +350,15 @@ int inject(thread_data_t * data, seekRecord_t * R, int op){
 		}
 		
 		return result;
-		
-		
 }
 
-
-
 bool insert(thread_data_t * data, long key){
-
-	 
-	 int injectResult;
-	
-	 int fasttry = 0;	
-	 
-	
+  int injectResult;
+  int fasttry = 0;	
 	
 	while(true){
-		
-		
-		
 		seekRecord_t * R = insseek(data, key, INS);
-		
 		fasttry++;
-		
-		
 		if(R == NULL){
 			if(fasttry == 1){
 				return false;
@@ -451,11 +369,7 @@ bool insert(thread_data_t * data, long key){
 		}
 		
 		if(!is_free(R->pL)){
-			
-			
-			
-				help_conflicting_operation(data, R);
-			
+		  help_conflicting_operation(data, R);
 			continue;
 		}
 		
@@ -469,26 +383,18 @@ bool insert(thread_data_t * data, long key){
 		}
 		
 	}
-	
 	// execute insert window operation.	
-	
-	
 } 
 
 bool delete_node(thread_data_t * data, long key){
-
-	 
 	int injectResult;
 	
 	while(true){
-		
-	
 		seekRecord_t * R = delseek(data, key, DEL);
 		
 		if(R == NULL){
 			return false;
 		}
-		
 		
 		// key is present in the tree. Inject operation into the tree
 		
@@ -500,7 +406,6 @@ bool delete_node(thread_data_t * data, long key){
 		}
 		
 		injectResult = inject(data, R, DEL);
-		
 
 		if(injectResult == 1){
 			// Operation injected 
@@ -518,8 +423,6 @@ bool delete_node(thread_data_t * data, long key){
 				// perform secondary seek.
 				
 				while(true){
-					
-				
 					R = secondary_seek(data, key, R);
 					
 					if(R == NULL){
@@ -532,29 +435,10 @@ bool delete_node(thread_data_t * data, long key){
 					if(res == 1){
 						return true;
 					}
-					
-					
-					
 				}
-				
-				
 			}
-			
 		}
-		
-		
-		
-		
 		// otherwise, operation was not injected. Restart.
 	}
-	
-
-	
-	
-	
-	
 }
-
-
-
 

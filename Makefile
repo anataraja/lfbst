@@ -1,6 +1,6 @@
 VERSION = TCMALLOC_NO_UPDATE
 
-CC = g++ -O3 -std=gnu++0x -g -w
+CC = g++ -O3 -std=gnu++0x -g
 
 ifeq "$(VERSION)" "MALLOC_UPDATE"
 CFLAGS = -lpthread -lrt -DUPDATEVAL
