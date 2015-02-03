@@ -56,6 +56,8 @@ Please cite our PPoPP 2014 paper - Fast Concurrent Lock-Free Binary Search Trees
  * transactions, one should check the environment returned by
  * stm_get_env() and only call sigsetjmp() if it is not null.
  */
+
+#define PREPROCESSING 0
  
 #define RO                              1
 #define RW                              0
@@ -339,7 +341,6 @@ void barrier_cross(barrier_t *b)
   } else {
     pthread_cond_broadcast(&b->complete);
     /* Reset for next time */
-    std::cout << "Resetting" << std::endl;
     b->crossing = 0;
   }
   pthread_mutex_unlock(&b->mutex);
@@ -373,11 +374,12 @@ void *testRW(void *data)
   
    Word key;
    thread_data_t *d = (thread_data_t *)data;
-  
+
+#if PREPROCESSING  
+   bool prepop = false;
+#endif
 
   /* Wait on barrier */
-   bool prepop = false;
-   
 restart:  
   barrier_cross(d->barrier);
 
@@ -492,7 +494,8 @@ while (stop == 0) {
 	
 	
   }
-	
+
+#if PREPROCESSING	
 	if(!prepop){
 	
 		barrier_cross(d->barrier2);
@@ -516,6 +519,7 @@ while (stop == 0) {
 	}
 	
 	goto restart; 
+#endif
 
   return NULL;
 }
@@ -857,15 +861,13 @@ data[i1].id = i1+1;
     exit(1);
   }
 
+#if PREPROCESSING
   /* Start threads */
   
    bool startsim = false;
     
   while(!startsim){  
      leafNodes = 0;
-std::cout << "1" << std::endl;
-//barrier_init(barrier2, nb_threads + 1);
-std::cout << "2" << std::endl;
     barrier_cross(barrier);
     // let the threads run for a while.
     sleep(2);
@@ -879,24 +881,19 @@ std::cout << "2" << std::endl;
     if((leafNodes > ((1.05)*(insert_frac*keyspace1_size)/(insert_frac+delete_frac))) || (leafNodes < ((0.95)*(insert_frac*keyspace1_size)/(insert_frac+delete_frac)))){
 	 //  Not yet within steady state limits. Let it run again.
 	 
-	  //barrier_init(barrier, nb_threads + 1);
 	  // Wait until all worker threads reach barrier2
-	  std::cout << "Case1" << std::endl;
 	  while(barrier_peek(barrier2)){
 	    pthread_yield();
 	  }
   	  AO_store_full(&stop, 0);
   	  barrier_cross(barrier2);
-    	   std::cout << "Crossed barrier2" << std::endl;
 
     }
     else{
     	// prepopulation done
     	
-    	//barrier_init(barrier, nb_threads + 1);
     	AO_store_full(&stop2, 1);
 	// Wait until all worker threads reach barrier2
-std::cout << "Case2" << std::endl;
 	while(barrier_peek(barrier2)){
 	    pthread_yield();
 	}
@@ -908,8 +905,7 @@ std::cout << "Case2" << std::endl;
     
     	
  } 
-   
-   std::cout << "HERE" << std::endl;
+ #endif  
     
     barrier_cross(barrier);
 
@@ -930,7 +926,6 @@ std::cout << "Case2" << std::endl;
     
   /* Wait for thread completion */
   
-std::cout << "HERE0" << std::endl;
    
   for (i = 0; i < nb_threads; i++) {
     if (pthread_join(threads[i], NULL) != 0) {
@@ -941,7 +936,6 @@ std::cout << "HERE0" << std::endl;
   
   // CONSISTENCY CHECK
   
-  std::cout << "ALL JOINED" << std::endl;
 	
    leafNodes = 0;	
  
