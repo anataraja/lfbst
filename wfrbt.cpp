@@ -85,13 +85,13 @@ long leafNodes = 0;
 long in_order_visit(node_t * rootNode){
 	long key = rootNode->key;
 	
-	if((node_t *)get_addr(rootNode->child.AO_val1) == NULL){
+	if((node_t *)get_addr(rootNode->lchild) == NULL){
 		leafNodes++;
 		return (key);
 	}
 	
-	node_t * lChild = (node_t *)get_addr(rootNode->child.AO_val1);
-	node_t * rChild = (node_t *)get_addr(rootNode->child.AO_val2);
+	node_t * lChild = (node_t *)get_addr(rootNode->lchild);
+	node_t * rChild = (node_t *)get_addr(rootNode->rchild);
 	
 	if((lChild) != NULL){
 		long lKey = in_order_visit(lChild);
@@ -131,8 +131,8 @@ int perform_one_insert_window_operation(thread_data_t* data, seekRecord_t * R, l
     data->recycledNodes.pop_back();
   }
 		
-  newLeaf->child.AO_val1 = 0;
-  newLeaf->child.AO_val2 = 0;
+  newLeaf->lchild = 0;
+  newLeaf->rchild = 0;
   newLeaf->key = newKey;
 		
   node_t * existLeaf = (node_t *)get_addr(R->pL);
@@ -141,14 +141,14 @@ int perform_one_insert_window_operation(thread_data_t* data, seekRecord_t * R, l
   if(newKey < existKey){
     // key is to be inserted on lchild
     newInt->key = existKey;
-    newInt->child.AO_val1 = create_child_word(newLeaf,0,0);			
-    newInt->child.AO_val2 = create_child_word(existLeaf,0,0);
+    newInt->lchild = create_child_word(newLeaf,0,0);			
+    newInt->rchild = create_child_word(existLeaf,0,0);
   }
   else{
     // key is to be inserted on rchild
     newInt->key = newKey;
-    newInt->child.AO_val2 = create_child_word(newLeaf,0,0);			
-    newInt->child.AO_val1 = create_child_word(existLeaf,0,0);
+    newInt->rchild = create_child_word(newLeaf,0,0);			
+    newInt->lchild = create_child_word(existLeaf,0,0);
   }
 		
   // cas to replace window
@@ -157,10 +157,10 @@ int perform_one_insert_window_operation(thread_data_t* data, seekRecord_t * R, l
   int result;
 		
   if(R->isLeftL){
-    result = atomic_cas_full(&R->parent->child.AO_val1, R->pL, newCasField);
+    result = atomic_cas_full(&R->parent->lchild, R->pL, newCasField);
   }
   else{
-    result = atomic_cas_full(&R->parent->child.AO_val2, R->pL, newCasField);
+    result = atomic_cas_full(&R->parent->rchild, R->pL, newCasField);
   }
 		
   if(result == 1){
@@ -185,12 +185,12 @@ int perform_one_delete_window_operation(thread_data_t* data, seekRecord_t * R, l
   // mark sibling.
   if(R->isLeftL){
     // L is the left child of P
-    mark_Node(&R->parent->child.AO_val2);
-    pS = R->parent->child.AO_val2;
+    mark_Node(&R->parent->rchild);
+    pS = R->parent->rchild;
   }
   else{
-    mark_Node(&R->parent->child.AO_val1);
-    pS = R->parent->child.AO_val1;
+    mark_Node(&R->parent->lchild);
+    pS = R->parent->lchild;
   }
 	 	
   AO_t newWord;
@@ -205,10 +205,10 @@ int perform_one_delete_window_operation(thread_data_t* data, seekRecord_t * R, l
   int result;
 		
   if(R->isLeftUM){
-    result = atomic_cas_full(&R->lum->child.AO_val1, R->lumC, newWord);
+    result = atomic_cas_full(&R->lum->lchild, R->lumC, newWord);
   }
   else{
-    result = atomic_cas_full(&R->lum->child.AO_val2, R->lumC, newWord);
+    result = atomic_cas_full(&R->lum->rchild, R->lumC, newWord);
   }
 
   return result;	
@@ -528,8 +528,8 @@ node_t * newRT = new node_t;
  newRC->key = keyspace1_size+2;
  
  
- newRT->child.AO_val1 = create_child_word(newLC,UNMARK, UNFLAG);
- newRT->child.AO_val2 = create_child_word(newRC,UNMARK, UNFLAG);
+ newRT->lchild = create_child_word(newLC,UNMARK, UNFLAG);
+ newRT->rchild = create_child_word(newRC,UNMARK, UNFLAG);
  
   
   stop = 0;

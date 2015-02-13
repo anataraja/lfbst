@@ -9,7 +9,7 @@ seekRecord_t * insseek(thread_data_t * data, long key, int op){
 	
 	
 	AO_t parentPointerWord = 0; // contents in gpar
-	AO_t leafPointerWord = par->child.AO_val1; // contents in par. Tree has two imaginary keys \inf_{1} and \inf_{2} which are larger than all other keys. 
+	AO_t leafPointerWord = par->lchild; // contents in par. Tree has two imaginary keys \inf_{1} and \inf_{2} which are larger than all other keys. 
 	AO_t leafchildPointerWord; // contents in leaf
 	
 	bool isparLC = false; // is par the left child of gpar
@@ -19,12 +19,12 @@ seekRecord_t * insseek(thread_data_t * data, long key, int op){
 	
 	leaf = (node_t *)get_addr(leafPointerWord);
 		if(key < leaf->key){
-			leafchildPointerWord = leaf->child.AO_val1;
+			leafchildPointerWord = leaf->lchild;
 			isleafchildLC = true;
 			
 		}
 		else{
-			leafchildPointerWord = leaf->child.AO_val2;
+			leafchildPointerWord = leaf->rchild;
 			isleafchildLC = false;
 		}
 	
@@ -47,11 +47,11 @@ seekRecord_t * insseek(thread_data_t * data, long key, int op){
 		
 		
 		if(key < leaf->key){
-			leafchildPointerWord = leaf->child.AO_val1;
+			leafchildPointerWord = leaf->lchild;
 			isleafchildLC = true;
 		}
 		else{
-			leafchildPointerWord = leaf->child.AO_val2;
+			leafchildPointerWord = leaf->rchild;
 			isleafchildLC = false;
 		}	
 		
@@ -90,7 +90,7 @@ seekRecord_t * delseek(thread_data_t * data, long key, int op){
 	
 	
 	AO_t parentPointerWord = 0; // contents in gpar
-	AO_t leafPointerWord = par->child.AO_val1; // contents in par. Tree has two imaginary keys \inf_{1} and \inf_{2} which are larger than all other keys. 
+	AO_t leafPointerWord = par->lchild; // contents in par. Tree has two imaginary keys \inf_{1} and \inf_{2} which are larger than all other keys. 
 	AO_t leafchildPointerWord; // contents in leaf
 	
 	bool isparLC = false; // is par the left child of gpar
@@ -100,12 +100,12 @@ seekRecord_t * delseek(thread_data_t * data, long key, int op){
 	
 	leaf = (node_t *)get_addr(leafPointerWord);
 		if(key < leaf->key){
-			leafchildPointerWord = leaf->child.AO_val1;
+			leafchildPointerWord = leaf->lchild;
 			isleafchildLC = true;
 			
 		}
 		else{
-			leafchildPointerWord = leaf->child.AO_val2;
+			leafchildPointerWord = leaf->rchild;
 			isleafchildLC = false;
 		}
 	
@@ -128,11 +128,11 @@ seekRecord_t * delseek(thread_data_t * data, long key, int op){
 		
 		
 		if(key < leaf->key){
-			leafchildPointerWord = leaf->child.AO_val1;
+			leafchildPointerWord = leaf->lchild;
 			isleafchildLC = true;
 		}
 		else{
-			leafchildPointerWord = leaf->child.AO_val2;
+			leafchildPointerWord = leaf->rchild;
 			isleafchildLC = false;
 		}	
 		
@@ -174,7 +174,7 @@ seekRecord_t * secondary_seek(thread_data_t * data, long key, seekRecord_t * sr)
 	node_t * leafchild;
 	
 	AO_t parentPointerWord = 0; // contents in gpar
-	AO_t leafPointerWord = par->child.AO_val1; // contents in par. Tree has two imaginary keys \inf_{1} and \inf_{2} which are larger than all other keys. 
+	AO_t leafPointerWord = par->lchild; // contents in par. Tree has two imaginary keys \inf_{1} and \inf_{2} which are larger than all other keys. 
 	AO_t leafchildPointerWord; // contents in leaf
 	
 	bool isparLC = false; // is par the left child of gpar
@@ -184,11 +184,11 @@ seekRecord_t * secondary_seek(thread_data_t * data, long key, seekRecord_t * sr)
 	
 	leaf = (node_t *)get_addr(leafPointerWord);
 	if(key < leaf->key){
-	  leafchildPointerWord = leaf->child.AO_val1;
+	  leafchildPointerWord = leaf->lchild;
 		isleafchildLC = true;
 	}
 	else{
-		leafchildPointerWord = leaf->child.AO_val2;
+		leafchildPointerWord = leaf->rchild;
 		isleafchildLC = false;
 	}
 	
@@ -208,11 +208,11 @@ seekRecord_t * secondary_seek(thread_data_t * data, long key, seekRecord_t * sr)
 		leaf = leafchild;
 		
 		if(key < leaf->key){
-			leafchildPointerWord = leaf->child.AO_val1;
+			leafchildPointerWord = leaf->lchild;
 			isleafchildLC = true;
 		}
 		else{
-			leafchildPointerWord = leaf->child.AO_val2;
+			leafchildPointerWord = leaf->rchild;
 			isleafchildLC = false;
 		}	
 		
@@ -245,11 +245,11 @@ seekRecord_t * secondary_seek(thread_data_t * data, long key, seekRecord_t * sr)
 
 bool search(thread_data_t * data, long key){
 	
-	node_t * cur = (node_t *)get_addr(data->rootOfTree->child.AO_val1);
+	node_t * cur = (node_t *)get_addr(data->rootOfTree->lchild);
 	long lastKey;	
 	while(cur != NULL){
 	  lastKey = cur->key;
-		cur = (key < lastKey? (node_t *)get_addr(cur->child.AO_val1): (node_t *)get_addr(cur->child.AO_val2));
+		cur = (key < lastKey? (node_t *)get_addr(cur->lchild): (node_t *)get_addr(cur->rchild));
 	}
 	
   return (key == lastKey);
@@ -268,13 +268,13 @@ int help_conflicting_operation (thread_data_t * data, seekRecord_t * R){
 		
 		if(R->isLeftL){
 			// L is the left child of P
-			mark_Node(&R->parent->child.AO_val2);
-			pS = R->parent->child.AO_val2;
+			mark_Node(&R->parent->rchild);
+			pS = R->parent->rchild;
 			
 		}
 		else{
-			mark_Node(&R->parent->child.AO_val1);
-			pS = R->parent->child.AO_val1;
+			mark_Node(&R->parent->lchild);
+			pS = R->parent->lchild;
 		}
 		
 		// 2. Execute cas on the last unmarked node to remove the 
@@ -291,10 +291,10 @@ int help_conflicting_operation (thread_data_t * data, seekRecord_t * R){
 		int result;
 		
 		if(R->isLeftUM){
-			 result = atomic_cas_full(&R->lum->child.AO_val1, R->lumC, newWord);
+			 result = atomic_cas_full(&R->lum->lchild, R->lumC, newWord);
 		}
 		else{
-			 result = atomic_cas_full(&R->lum->child.AO_val2, R->lumC, newWord);
+			 result = atomic_cas_full(&R->lum->rchild, R->lumC, newWord);
 		}
 		
 		return result; 
@@ -316,10 +316,10 @@ int help_conflicting_operation (thread_data_t * data, seekRecord_t * R){
 		int result;
 		
 		if(R->isLeftUM){
-			 result = atomic_cas_full(&R->lum->child.AO_val1, R->lumC, newWord);
+			 result = atomic_cas_full(&R->lum->lchild, R->lumC, newWord);
 		}
 		else{
-			result = atomic_cas_full(&R->lum->child.AO_val2, R->lumC, newWord);
+			result = atomic_cas_full(&R->lum->rchild, R->lumC, newWord);
 		}
 		
     return result; 
@@ -342,11 +342,11 @@ int inject(thread_data_t * data, seekRecord_t * R, int op){
 		int result; 
 		
 		if(R->isLeftL){
-			result = atomic_cas_full(&R->parent->child.AO_val1, R->pL, newWord);
+			result = atomic_cas_full(&R->parent->lchild, R->pL, newWord);
 			
 		}
 		else{
-			result = atomic_cas_full(&R->parent->child.AO_val2, R->pL, newWord);
+			result = atomic_cas_full(&R->parent->rchild, R->pL, newWord);
 		}
 		
 		return result;

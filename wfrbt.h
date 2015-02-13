@@ -24,7 +24,9 @@ typedef uintptr_t Word;
 
 typedef struct node{
 	int key;
-	AO_double_t volatile child;
+	//AO_double_t volatile child;
+	AO_t volatile lchild;
+	AO_t volatile rchild;
 	#ifdef UPDATE_VAL
 		long value;
 	#endif
