@@ -117,11 +117,16 @@ long in_order_visit(node_t * rootNode){
 /*************************************************************************************************/
 int perform_one_insert_window_operation(thread_data_t* data, seekRecord_t * R, long newKey){
   node_t *newInt ;
-	node_t *newLeaf;
+  node_t *newLeaf;
+  
   if(data->recycledNodes.empty()){
-	  node_t * allocedNodeArr =(node_t *)malloc(2*sizeof(node_t));// new pointerNode_t[2];
-    newInt = &allocedNodeArr[0];
-    newLeaf = &allocedNodeArr[1]; 
+    // Note: In our experience, we've observed that making one malloc call of sizeof(2*node_t)
+    // results in better performance than making two separate malloc calls of sizeof(node_t).
+    // However, that is disabled in this version. To enable it, simply uncomment the below line, 
+    // and set newInt and newLeaf to allocedNodeArr[0] and allocedNodeArr[1].
+    //node_t * allocedNodeArr =(node_t *)malloc(2*sizeof(node_t));
+    newInt = (node_t*)malloc(sizeof(node_t));
+    newLeaf = (node_t*)malloc(sizeof(node_t)); 
   }
   else{ 
     // reuse memory of previously allocated nodes.
